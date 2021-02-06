@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  todo:
+    build:
+      target: dev
+      context: .
+    entrypoint: ["python", "-m", "todo"]
+    dns:
+      - 8.8.8.8
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./todo.py:/app/todo.py
