@@ -11,4 +11,8 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./todo.py:/app/todo.py
+      - ./todo:/app/todo
+      - data:/mnt/data
+
+volumes:
+  data:
