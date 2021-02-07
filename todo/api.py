@@ -1,8 +1,16 @@
-import pprint
 import uuid
+
+import flask
 
 from todo.db import Session
 from todo.db import Todo
+
+app = flask.Flask(__name__)
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return "<h1>Test</p>"
 
 
 def todo():
@@ -14,7 +22,3 @@ def todo():
     todos = session.query(Todo)
 
     return {"todos": [todo.to_json() for todo in todos]}
-
-
-if __name__ == "__main__":
-    pprint.pprint(todo())

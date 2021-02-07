@@ -1,15 +1,5 @@
-import json
+from apig_wsgi import make_lambda_handler
 
-from todo.__main__ import todo
+from todo.api import app
 
-
-def handler(event, context):
-    return {
-        "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
-        "isBase64Encoded": False,
-        "multiValueHeaders": {
-            "X-Custom-Header": ["My value", "My other value"],
-        },
-        "body": json.dumps(todo()),
-    }
+handler = make_lambda_handler(app)

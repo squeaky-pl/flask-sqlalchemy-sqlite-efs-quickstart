@@ -1,1 +1,4 @@
+apig_wsgi==2.10.0
+awslambdaric==1.0.0
+flask==1.1.2
 sqlalchemy==1.3.23

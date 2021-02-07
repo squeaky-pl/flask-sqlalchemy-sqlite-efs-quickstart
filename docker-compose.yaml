@@ -5,7 +5,12 @@ services:
     build:
       target: dev
       context: .
-    entrypoint: ["python", "-m", "todo"]
+    environment:
+      - FLASK_APP=todo.api
+      - FLASK_DEBUG=1
+    entrypoint: ["python", "-m", "flask", "run", "--host", "0.0.0.0"]
+    ports:
+      - 5000:5000
     dns:
       - 8.8.8.8
     stdin_open: true
