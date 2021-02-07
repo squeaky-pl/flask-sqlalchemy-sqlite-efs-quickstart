@@ -1,0 +1,24 @@
+{% extends "layout.html" %} {% block content %}
+<h1>Todos</h1>
+<ul>
+  {% for todo in todos %}
+  <li>{{ todo.name }}</li>
+  {% endfor %}
+</ul>
+<form action="{{ url_for('add') }}" method="post">
+  <fieldset class="uk-fieldset">
+    <legend class="uk-legend">New todo item</legend>
+
+    <div class="uk-margin">
+      <input
+        class="uk-input uk-form-width-medium"
+        type="text"
+        placeholder="Name"
+        name="name"
+      />
+    </div>
+
+    <button class="uk-button uk-button-primary">Add</button>
+  </fieldset>
+</form>
+{% endblock %}
