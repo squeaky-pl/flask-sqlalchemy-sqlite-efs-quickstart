@@ -8,8 +8,16 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/uikit@3.6.16/dist/css/uikit.min.css"
     />
+
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.16/dist/js/uikit.min.js"></script>
   </head>
   <body class="uk-padding">
-    {% block content %}{% endblock %}
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <script>
+      {% for message in messages %}
+          UIkit.notification({message: {{ message | tojson }}, status: 'success'})
+      {% endfor %}
+    </script>
+    {% endif %} {% endwith %} {% block content %}{% endblock %}
   </body>
 </html>

@@ -4,6 +4,7 @@ from todo.db import Session
 from todo.db import Todo
 
 app = flask.Flask(__name__)
+app.secret_key = "s3cr3t"
 
 
 @app.route("/", methods=["GET"])
@@ -23,6 +24,8 @@ def add():
     session.add(todo)
     session.commit()
 
+    flask.flash(f"Todo {todo.name} successfully added")
+
     return flask.redirect(flask.url_for("index"))
 
 
@@ -33,6 +36,8 @@ def delete(todo_id):
     todo = session.query(Todo).get(todo_id)
     session.delete(todo)
     session.commit()
+
+    flask.flash(f"Todo {todo.name} successfully deleted")
 
     return flask.redirect(flask.url_for("index"))
 
