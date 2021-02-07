@@ -1,3 +1,4 @@
+from aws_cdk import aws_apigateway as apigateway
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_efs as efs
 from aws_cdk import aws_lambda
@@ -49,7 +50,7 @@ def create_sqlite_on_efs_stack(app):
         posix_user=efs.PosixUser(uid="1000", gid="1000"),
     )
 
-    aws_lambda.DockerImageFunction(
+    handler = aws_lambda.DockerImageFunction(
         stack,
         "sqlite-on-efs-lambda",
         code=code,
@@ -62,6 +63,10 @@ def create_sqlite_on_efs_stack(app):
         filesystem=aws_lambda.FileSystem.from_efs_access_point(
             ap=filesystem_ap, mount_path="/mnt/data"
         ),
+    )
+
+    apigateway.LambdaRestApi(
+        stack, "sqlite-on-efs-gw", handler=handler, rest_api_name="sqlite-on-efs"
     )
 
 
