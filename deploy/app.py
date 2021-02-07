@@ -1,4 +1,5 @@
 from aws_cdk import aws_ec2 as ec2
+from aws_cdk import aws_efs as efs
 from aws_cdk import aws_lambda
 from aws_cdk import core
 from aws_cdk.aws_logs import RetentionDays
@@ -31,6 +32,23 @@ def create_sqlite_on_efs_stack(app):
         security_group_name="sqlite-on-efs",
     )
     subnet_selection = ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC)
+    filesystem = efs.FileSystem(
+        stack,
+        "sqlite-on-efs-fs",
+        file_system_name="squeaky-on-efs",
+        vpc=vpc,
+        security_group=security_group,
+        vpc_subnets=subnet_selection,
+        removal_policy=core.RemovalPolicy.DESTROY,
+    )
+
+    filesystem_ap = filesystem.add_access_point(
+        "sqlite-on-efs",
+        path="/data",
+        create_acl=efs.Acl(owner_uid="1000", owner_gid="1000", permissions="0755"),
+        posix_user=efs.PosixUser(uid="1000", gid="1000"),
+    )
+
     aws_lambda.DockerImageFunction(
         stack,
         "sqlite-on-efs-lambda",
@@ -41,6 +59,9 @@ def create_sqlite_on_efs_stack(app):
         log_retention=RetentionDays.ONE_WEEK,
         security_group=security_group,
         function_name="sqlite-on-efs",
+        filesystem=aws_lambda.FileSystem.from_efs_access_point(
+            ap=filesystem_ap, mount_path="/mnt/data"
+        ),
     )
 
 
