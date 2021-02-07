@@ -1,10 +1,27 @@
 {% extends "layout.html" %} {% block content %}
 <h1>Todos</h1>
-<ul>
-  {% for todo in todos %}
-  <li>{{ todo.name }}</li>
-  {% endfor %}
-</ul>
+<table class="uk-table uk-table-striped uk-width-xlarge">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="uk-table-shrink"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for todo in todos %}
+    <tr>
+      <td>{{ todo.name }}</td>
+      <td class="uk-table-shrink">
+        <a
+          class="uk-button uk-button-danger uk-button-small"
+          href="{{ url_for('delete', todo_id=todo.id) }}"
+          >Delete</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 <form action="{{ url_for('add') }}" method="post">
   <fieldset class="uk-fieldset">
     <legend class="uk-legend">New todo item</legend>

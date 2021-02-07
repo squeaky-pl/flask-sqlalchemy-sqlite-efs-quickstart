@@ -1,5 +1,3 @@
-import uuid
-
 import flask
 
 from todo.db import Session
@@ -28,12 +26,20 @@ def add():
     return flask.redirect(flask.url_for("index"))
 
 
+@app.route("/delete/<int:todo_id>", methods=["GET"])
+def delete(todo_id):
+    session = Session()
+
+    todo = session.query(Todo).get(todo_id)
+    session.delete(todo)
+    session.commit()
+
+    return flask.redirect(flask.url_for("index"))
+
+
 @app.route("/todos.json", methods=["GET"])
 def todo():
     session = Session()
-    todo = Todo(name=f"My todo {uuid.uuid4()}")
-    session.add(todo)
-    session.commit()
 
     todos = session.query(Todo)
 
