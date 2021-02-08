@@ -36,7 +36,7 @@ def create_sqlite_on_efs_stack(app):
     filesystem = efs.FileSystem(
         stack,
         "sqlite-on-efs-fs",
-        file_system_name="squeaky-on-efs",
+        file_system_name="sqlite-on-efs",
         vpc=vpc,
         security_group=security_group,
         vpc_subnets=subnet_selection,
