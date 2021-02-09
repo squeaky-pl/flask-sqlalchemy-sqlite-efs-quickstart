@@ -5,7 +5,7 @@ from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine("sqlite:////mnt/data/todo.db")
+engine = create_engine("sqlite:////mnt/data/todo.db", connect_args={"timeout": 15})
 
 Base = declarative_base()
 

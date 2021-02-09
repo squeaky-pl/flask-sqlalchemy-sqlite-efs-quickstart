@@ -1,3 +1,4 @@
+aws_cdk.aws_backup==1.88
 aws_cdk.aws_ec2==1.88
 aws_cdk.aws_ecr_assets==1.88
 aws_cdk.aws_ecs==1.88

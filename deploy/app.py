@@ -1,6 +1,8 @@
 from aws_cdk import aws_apigateway as apigateway
+from aws_cdk import aws_backup as backup
 from aws_cdk import aws_ec2 as ec2
 from aws_cdk import aws_efs as efs
+from aws_cdk import aws_events as events
 from aws_cdk import aws_lambda
 from aws_cdk import core
 from aws_cdk.aws_logs import RetentionDays
@@ -68,6 +70,30 @@ def create_sqlite_on_efs_stack(app):
     apigateway.LambdaRestApi(
         stack, "sqlite-on-efs-gw", handler=handler, rest_api_name="sqlite-on-efs"
     )
+
+    backup_vault = backup.BackupVault(
+        stack,
+        "sqlite-on-efs-backup-vault",
+        backup_vault_name="sqlite-on-efs",
+        removal_policy=core.RemovalPolicy.DESTROY,
+    )
+
+    backup_plan = backup.BackupPlan(
+        stack,
+        "sqlite-on-efs-backup",
+        backup_plan_name="sqlite-on-efs",
+        backup_vault=backup_vault,
+    )
+    backup_plan.add_selection(
+        "sqlite-on-efs",
+        resources=[backup.BackupResource.from_efs_file_system(filesystem)],
+    )
+    backup_rule = backup.BackupPlanRule(
+        delete_after=core.Duration.days(15),
+        rule_name="squeaky-on-efs",
+        schedule_expression=events.Schedule.cron(hour="1", minute="00"),
+    )
+    backup_plan.add_rule(backup_rule)
 
 
 app = core.App()
