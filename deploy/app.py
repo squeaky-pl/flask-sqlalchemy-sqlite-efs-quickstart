@@ -67,6 +67,7 @@ def create_sqlite_on_efs_stack(app):
         filesystem=aws_lambda.FileSystem.from_efs_access_point(
             ap=filesystem_ap, mount_path="/mnt/data"
         ),
+        timeout=core.Duration.seconds(30),
     )
 
     apigateway.LambdaRestApi(
