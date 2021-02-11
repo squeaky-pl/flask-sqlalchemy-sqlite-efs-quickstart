@@ -24,6 +24,7 @@ def create_sqlite_on_efs_stack(app):
         max_azs=1,
         subnet_configuration=subnet_configuration,
     )
+    stack.vpc = vpc
 
     code = aws_lambda.DockerImageCode.from_image_asset("..")
 
@@ -34,7 +35,9 @@ def create_sqlite_on_efs_stack(app):
         allow_all_outbound=True,
         security_group_name="sqlite-on-efs",
     )
+    stack.security_group = security_group
     subnet_selection = ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC)
+    stack.subnet_selection = subnet_selection
     filesystem = efs.FileSystem(
         stack,
         "sqlite-on-efs-fs",
@@ -44,6 +47,8 @@ def create_sqlite_on_efs_stack(app):
         vpc_subnets=subnet_selection,
         removal_policy=core.RemovalPolicy.DESTROY,
     )
+
+    stack.filesystem = filesystem
 
     core.CfnOutput(stack, "file_system_id", value=filesystem.file_system_id)
 
@@ -98,6 +103,11 @@ def create_sqlite_on_efs_stack(app):
     )
     backup_plan.add_rule(backup_rule)
 
+    return stack
+
+
+def create_bastion(app, infra):
+    stack = core.Stack(app, "sqlite-on-efs-bastion")
     init_config = ec2.InitConfig(
         [
             ec2.InitFile.from_file_inline(
@@ -107,7 +117,7 @@ def create_sqlite_on_efs_stack(app):
             ec2.InitCommand.shell_command(
                 f"""sudo -u ec2-user aws configure set region {stack.region};
                 mkdir /mnt/data;
-                mount -t efs {filesystem.file_system_id}:/data /mnt/data;
+                mount -t efs {infra.filesystem.file_system_id}:/data /mnt/data;
             """
             ),
         ]
@@ -116,11 +126,11 @@ def create_sqlite_on_efs_stack(app):
 
     bastion_host = ec2.Instance(
         stack,
-        "squeaky-on-efs-bastion",
-        vpc=vpc,
-        instance_name="squeaky-on-efs",
-        security_group=security_group,
-        vpc_subnets=subnet_selection,
+        "sqlite-on-efs-bastion",
+        vpc=infra.vpc,
+        instance_name="sqlite-on-efs",
+        security_group=infra.security_group,
+        vpc_subnets=infra.subnet_selection,
         instance_type=ec2.InstanceType("t3a.nano"),
         init=bastion_init,
         machine_image=ec2.MachineImage.latest_amazon_linux(
@@ -128,7 +138,7 @@ def create_sqlite_on_efs_stack(app):
         ),
     )
 
-    security_group.add_ingress_rule(
+    infra.security_group.add_ingress_rule(
         ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "Allow SSH access"
     )
 
@@ -139,6 +149,7 @@ def create_sqlite_on_efs_stack(app):
 
 app = core.App()
 
-crawler = create_sqlite_on_efs_stack(app)
+infra = create_sqlite_on_efs_stack(app)
+bastion = create_bastion(app, infra)
 
 app.synth()
