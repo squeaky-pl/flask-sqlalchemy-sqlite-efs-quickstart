@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
       - ..:/repo
-      - ~/.aws:/root/.aws
+      - ~/.aws:/root/.aws:ro
+      - ~/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub:ro
       - /var/run/docker.sock:/var/run/docker.sock
     network_mode: host

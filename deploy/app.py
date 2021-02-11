@@ -45,6 +45,8 @@ def create_sqlite_on_efs_stack(app):
         removal_policy=core.RemovalPolicy.DESTROY,
     )
 
+    core.CfnOutput(stack, "file_system_id", value=filesystem.file_system_id)
+
     filesystem_ap = filesystem.add_access_point(
         "sqlite-on-efs",
         path="/data",
@@ -94,6 +96,44 @@ def create_sqlite_on_efs_stack(app):
         schedule_expression=events.Schedule.cron(hour="1", minute="00"),
     )
     backup_plan.add_rule(backup_rule)
+
+    init_config = ec2.InitConfig(
+        [
+            ec2.InitFile.from_file_inline(
+                "/home/ec2-user/.ssh/authorized_keys", "/root/.ssh/id_rsa.pub"
+            ),
+            ec2.InitPackage.yum("amazon-efs-utils"),
+            ec2.InitCommand.shell_command(
+                f"""sudo -u ec2-user aws configure set region {stack.region};
+                mkdir /mnt/data;
+                mount -t efs {filesystem.file_system_id}:/data /mnt/data;
+            """
+            ),
+        ]
+    )
+    bastion_init = ec2.CloudFormationInit.from_config(init_config)
+
+    bastion_host = ec2.Instance(
+        stack,
+        "squeaky-on-efs-bastion",
+        vpc=vpc,
+        instance_name="squeaky-on-efs",
+        security_group=security_group,
+        vpc_subnets=subnet_selection,
+        instance_type=ec2.InstanceType("t3a.nano"),
+        init=bastion_init,
+        machine_image=ec2.MachineImage.latest_amazon_linux(
+            generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
+        ),
+    )
+
+    security_group.add_ingress_rule(
+        ec2.Peer.any_ipv4(), ec2.Port.tcp(22), "Allow SSH access"
+    )
+
+    core.CfnOutput(
+        stack, "bastion_public_dns", value=bastion_host.instance_public_dns_name
+    )
 
 
 app = core.App()
