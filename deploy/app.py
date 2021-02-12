@@ -131,10 +131,11 @@ def create_bastion(app, infra):
         instance_name="sqlite-on-efs",
         security_group=infra.security_group,
         vpc_subnets=infra.subnet_selection,
-        instance_type=ec2.InstanceType("t3a.nano"),
+        instance_type=ec2.InstanceType("t4g.nano"),
         init=bastion_init,
         machine_image=ec2.MachineImage.latest_amazon_linux(
-            generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2
+            cpu_type=ec2.AmazonLinuxCpuType.ARM_64,
+            generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
         ),
     )
 
